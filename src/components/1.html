@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>纯css实现文字循环滚动效果</title>
+    <style type="text/css">
+        * {
+            margin: 0;
+            padding: 0;
+        }
+ 
+        .box {
+          display: inline-block;
+            width: 156px;
+            margin: 0 auto;
+            border: 1px solid #ff6700;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+ 
+        .box:hover .animate {
+            display: inline-block;
+
+            animation: 5s wordsLoop linear normal;
+        }
+ 
+        @keyframes wordsLoop {
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+ 
+      
+    </style>
+</head>
+<body>
+<span class="box">
+    <span class="animate">
+      文字滚动的内容啊啊啊啊啊啊
+    </span>
+    <span class="animate">
+      文字滚动的内容啊啊啊啊啊啊
+    </span>
+</span>
+</body>
+</html>

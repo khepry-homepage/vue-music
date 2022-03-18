@@ -1,0 +1,132 @@
+<template>
+  <div>
+    <el-carousel :interval="4000" type="card" height="200px">
+      <el-carousel-item v-for="(banner, idx) in banners" :key="idx">
+        <img class="banner" :src="banner.imageUrl" alt="">
+      </el-carousel-item>
+    </el-carousel>    
+    <h3 class="title-tag">推荐歌单</h3>
+    <div class="playlists">
+      <SinglePlayList v-for="(playlist, idx) in playlists" 
+        :key="idx" 
+        :playlist="playlist">
+        <template v-slot:desc>
+          <p class="pl-desc">{{playlist.name}}</p>
+        </template>
+      </SinglePlayList>
+    </div>
+    <h3 class="title-tag">最新音乐</h3>
+    <div class="newsong">
+      <NewSong v-for="(newsong, idx) in newsongs" 
+        :key="idx" 
+        :newsong="newsong" 
+        @dblclick.native="handlePlay(newsong.id)"
+        @click.native="handleClick(idx)"
+        class="single-song"
+        :class="{activate: activateIdx === idx}"/>
+    </div>
+    
+
+  </div>
+
+</template>
+
+<script>
+import SinglePlayList from 'components/SinglePlayList'
+import NewSong from './NewSong'
+export default {
+  name: 'Recommend',
+  data() {
+    return {
+      banners: new Array(9).fill(''),
+      playlists: null,
+      newsongs: null,
+      activateIdx: null
+    }
+  },
+  created() {
+    // 请求需要轮播的海报
+    this.$comReq({
+      url: '/banner',
+      data: {
+        type: 0
+      }
+    })
+    .then(res => this.banners = res.banners)
+    .catch(err => console.log(err));
+
+    // 请求推荐歌单
+    this.$comReq({
+      url: '/personalized',
+      data: {
+        limit: 8
+      }
+    })
+    .then(res => this.playlists = res.result)
+    .catch(err => console.log(err));
+
+    // 请求最新音乐
+    this.$comReq({
+      url: '/personalized/newsong',
+      data: {
+        limit: 12
+      }
+    })
+    .then(res => this.newsongs = res.result)
+    .catch(err => console.log(err));
+  },
+  components: {SinglePlayList, NewSong},
+  methods: {
+    handlePlay(songId) {
+      this.$store.commit({
+        type: 'updateAudioUrl',
+        songId
+      })
+    },
+    handleClick(index) {
+      this.activateIdx = index;
+    }
+  },
+}
+</script>
+
+<style scoped>
+  .el-carousel__item {
+    border-radius: 0.5rem;
+  }
+
+  .el-carousel__item:nth-child(2n) {
+    background-color: #99a9bf;
+  }
+  
+  .el-carousel__item:nth-child(2n+1) {
+    background-color: #d3dce6;
+  }
+
+  .banner {
+    width: 100%;
+    height: 100%;
+  }
+  .playlists, .newsong {
+    display: flex;
+    flex-wrap: wrap;  /* 自动换行 */
+    justify-content: space-between;
+  }
+  .newsong > div {
+    flex-basis: 32%;  /* 控制盒子宽度为32%，则盒间间距为2% */
+  }
+  .single-song:hover, .activate {
+    background-color: rgb(236, 233, 233);
+  }
+  .title-tag::after {
+    font-family: "iconfont" !important;
+    margin-left: 0.5rem;
+    width: 1rem;
+    height: 1rem;
+    content: "\e625"
+  }
+  .pl-desc {
+    width: 10rem;
+    margin: 0.3rem 0 0.3rem 0;
+  }
+</style>
