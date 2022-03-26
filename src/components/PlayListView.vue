@@ -94,6 +94,7 @@
         </el-table>      
       </div>
     </el-scrollbar> 
+    <animated-loading :id="this.animateId" :defaultStyle="{width: '2rem', height: '2rem'}" />
   </div>
 </template>
 
@@ -104,6 +105,7 @@ export default {
   props: {},
   data() {
     return {
+      animateId: new Date().getTime(),
       playlist: {},
       songs: [
         {
@@ -455,7 +457,7 @@ export default {
         data: {
           id
         }
-      })
+      }, {id: this.animateId})
     },
     // 获取歌单所有歌曲
     queryPlaylistTrackAll(id) {
@@ -464,7 +466,7 @@ export default {
         data: {
           id
         }
-      })
+      }, {id: this.animateId})
     },
     tableRowClassName({row, rowIndex}) {
       if (rowIndex % 2 === 0) {
@@ -507,7 +509,7 @@ export default {
             return error;
           }
         }
-        this.$store.dispatch('addAllToList', {songs: this.songs});
+        this.$store.dispatch('addAllToList', {songs: this.songs.filter(song => song.url)});
       }      
     },
     handleDbClick(row, column, cell, event) {
@@ -553,6 +555,7 @@ export default {
     background: rgb(209, 209, 209)!important;
   }
   .box {
+    position: relative;
     height: calc(100vh - 10rem);
   }
   .el-scrollbar {

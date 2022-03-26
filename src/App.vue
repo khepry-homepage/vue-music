@@ -16,11 +16,42 @@ export default {
     Header,
     Main,
     Footer
-  }
+  },
+  mounted() {
+    // setFontSize()
+      // function setFontSize(){
+      //     let designWidth = 1280;//设计稿的宽度，根据实际项目调整
+      //     let designHeight = 1120;//设计稿的高度，根据实际项目调整
+      //     var fontSize = 
+      //         document.documentElement.clientWidth/document.documentElement.clientHeight < designWidth/designHeight ? 
+      //         (document.documentElement.clientWidth / designWidth) * 16:
+      //         (document.documentElement.clientHeight / designHeight) * 16;
+      //     document.querySelector('html').style.fontSize = fontSize + 'px';
+      // }
+      // window.onresize = function () {
+      //     setFontSize()
+      // };
+  },
 }
 </script>
 
 <style>
+html{
+  height:100%;
+  margin: 0;
+}
+body {
+  height:100%;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+/* 浏览器窗口缩放时重新计算html字体标准大小 */
+@media screen {
+  /* 设计稿大小: 1280 * 1120 */
+  html {
+    font-size: 1.25vw;
+  }
+}
 p {
   display: block;
   -webkit-margin-before: 0rem;
@@ -38,8 +69,8 @@ p {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 70rem;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
 }
 #app > div:nth-child(even) {
   width: 100%;
@@ -63,9 +94,18 @@ p {
 }
 
 .el-table .odd-row {
-  background-color: rgb(243, 241, 241);
+  background-color: rgb(250, 250, 250);
 }
-
+/* 标签统一样式 */
+.select-tag {
+  padding: 0.2rem 0.5rem 0.2rem 0.5rem;
+  font-size: 1rem;
+  border-radius: 1rem;
+}
+.activate-tag {
+  background-color: rgb(246, 204, 189);
+  color: red;  
+}
 
 .cursor {
   cursor : pointer;
@@ -81,6 +121,12 @@ p {
 }
 .addition-font {
   color: rgb(160, 159, 159);
+}
+.info-font {
+  color: rgb(73, 73, 73);
+}
+.info-font:hover {
+  color: black;
 }
 .red-font {
   color: red;
@@ -119,7 +165,10 @@ p {
   overflow-x: hidden;
 }
 .gray-hover:hover {
-  background: rgb(243, 241, 241);
+  background: rgb(243, 241, 241)!important;
+}
+.current-row {
+  background: rgb(209, 209, 209)!important;
 }
 .list-row {
   font-size: 0.8rem;
@@ -147,9 +196,6 @@ p {
 .box-margin-LR {
   margin-left: 1rem !important;
   margin-right: 1rem !important;
-}
-.margin-1 {
-  margin-left: 1rem;
 }
 .margin-2 {
   margin-left: 2rem;

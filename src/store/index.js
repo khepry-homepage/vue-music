@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import {comReq} from '../api/comReq.js'
+import {comReq} from '../api/index.js'
 import {debounce} from '../lodash.js'
 Vue.use(Vuex)
 const store = new Vuex.Store({
@@ -18,10 +18,25 @@ const store = new Vuex.Store({
         likelist: new Set(),
         playlist: [],
         listIds: new Set()
-      }
+      },
+      animationIds: {},
+      currNav: '发现音乐'
     }
   },
   mutations: {
+    // 修改当前导航栏目
+    setNavigationName(state, { name }) {
+      state.currNav = name;
+    },
+    // 添加动画id
+    addAnimateId(state, id) {
+      Vue.set(state.animationIds, [id], state.animationIds[id] ? state.animationIds[id] + 1 : 1); // 响应式添加属性到对象中，不然无法监听到对象改变
+    },
+    // 删除动画id
+    removeAnimateId(state, id) {
+      if (!state.animationIds[id]) return;
+      Vue.set(state.animationIds, [id], state.animationIds[id] - 1);
+    },
     // 设置播放模式 0: 顺序播放 1: 随机播放 2: 单曲循环播放
     setPlayMode(state, {mode}) {
       state.playMode = mode;

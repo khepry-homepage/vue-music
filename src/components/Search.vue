@@ -8,9 +8,9 @@
     <div v-show="show" class="search-item">
       <el-scrollbar>
         <div v-if="!inputValue">
-          <h3 class="margin-1">热搜榜</h3>
+          <h3 class="flush-left">热搜榜</h3>
           <div class="state cursor" v-for="(song, idx) in hotSearch" :key="idx">
-            <div class="font-horCenter index margin-1" :class="{'top-three-index': idx < 3}">{{idx + 1}}</div>
+            <div class="font-horCenter index flush-left" :class="{'top-three-index': idx < 3}">{{idx + 1}}</div>
             <div class="detail flex-row-vertical-center">
               <div class="overflow-replace-ellipsis">
                 <span class="font-horCenter name"
@@ -24,26 +24,27 @@
           </div>
         </div>
         <div v-else>
-          <h3 class="margin-1" :class="{'null-result': suggest.keywords && !suggest.keywords.length}" v-show="suggest.keywords">猜你想搜</h3>
+          <h3 class="flush-left" :class="{'null-result': suggest.keywords && !suggest.keywords.length}" v-show="suggest.keywords">猜你想搜</h3>
           <div class="gray-hover list-row" v-for="keyword in suggest.keywords" :key="keyword">
-            <span class="margin-1 font-half">{{keyword}}</span>
+            <span class="flush-left font-half">{{keyword}}</span>
           </div>
-          <h3 class="margin-1" :class="{'null-result': suggest.songs && !suggest.songs.length}" v-show="suggest.songs">单曲</h3>
+          <h3 class="flush-left" :class="{'null-result': suggest.songs && !suggest.songs.length}" v-show="suggest.songs">单曲</h3>
           <div class="gray-hover list-row" v-for="song in suggest.songs" 
             :key="song.id"
             @mousedown="playSong(song.id)">
-            <span class="margin-1 font-half">{{song.name+(song.alias.length?` (${song.alias})`:'')+' - '+song.artists[0].name}}</span>
+            <span class="flush-left font-half">{{song.name+(song.alias.length?` (${song.alias})`:'')+' - '+song.artists[0].name}}</span>
           </div>
-          <h3 class="margin-1" :class="{'null-result': suggest.artists && !suggest.artists.length}" v-show="suggest.artists">歌手</h3>
+          <h3 class="flush-left" :class="{'null-result': suggest.artists && !suggest.artists.length}" v-show="suggest.artists">歌手</h3>
           <div class="gray-hover list-row" v-for="artist in suggest.artists" :key="artist.id">
-            <span class="margin-1 font-half">{{artist.name}}</span>
+            <span class="flush-left font-half">{{artist.name}}</span>
           </div>
-          <h3 class="margin-1" :class="{'null-result': suggest.albums && !suggest.albums.length}" v-show="suggest.albums">专辑</h3>
+          <h3 class="flush-left" :class="{'null-result': suggest.albums && !suggest.albums.length}" v-show="suggest.albums">专辑</h3>
           <div class="gray-hover list-row" v-for="album in suggest.albums" :key="album.id">
-            <span class="margin-1 font-half">{{album.name+''}}</span>
+            <span class="flush-left font-half">{{album.name+''}}</span>
           </div>
         </div>
       </el-scrollbar>
+      <animated-loading :id="this.animateId" />
     </div>
   </div>
 </template>
@@ -64,7 +65,8 @@ export default {
         songs: null,
         artists: null,
         albums: null
-      }
+      },
+      animateId: new Date().getTime()
     };
   },
   watch: {
@@ -139,7 +141,7 @@ export default {
         data: {
           keywords: this.inputValue
         }
-      })
+      }, {id: this.animateId})
       .then(res => {
         if (res.code !== 200) return;
         let songs = res.result.songs;
@@ -164,7 +166,7 @@ export default {
     // 获取当日热搜歌曲
     this.$comReq({
       url: '/search/hot/detail'
-    })
+    }, {id: this.animateId})
     .then(res => this.hotSearch = res.data)
     .catch(err => console.log(err))
   },

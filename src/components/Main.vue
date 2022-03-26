@@ -13,14 +13,14 @@ export default {
   components: {
     Nav,
     Discover,
-    PlayListView
+    PlayListView,
   }
 }
 </script>
 
 <style scoped>
   .music-main {
-    height: calc(100vh - 10rem);
+    height: calc(100% - 10rem);
     display: flex;
     flex-direction: row;
     border-right: 1px solid black;

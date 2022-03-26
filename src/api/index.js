@@ -1,28 +1,21 @@
+import initInterceptors from './interceptor/index.js'
 import axios from 'axios'
-function comReq(option) {
+function comReq(option, {id} = {}) {
   return new Promise((resolve, reject) => {
     const instance1 = axios.create({
       baseURL: 'https://netease-cloud-music-api-gilt-seven.vercel.app',
       method: 'post',
       withCredentials: true,
     });
-    let loadinginstace;
     // axios请求拦截器
-    instance1.interceptors.request.use(res => {
-      // 加上时间戳防止响应缓存数据
-      res.params = {
-        timestamp: new Date().getTime()
-      };
-      return res;
-    }, err => console.log(err))
+    initInterceptors(instance1, {id});
     instance1(option)
       .then(res => resolve(res.data))
       .catch(err => reject(err));
   })
 
 }
-
-const encAxios = (function() {
+const encAxios = (function () {
   const instance2 = axios.create({
     baseURL: 'https://netease-cloud-music-api-gilt-seven.vercel.app',
     method: 'post',

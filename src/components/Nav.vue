@@ -1,9 +1,9 @@
 <template>
   <div >
     <div>
-      <p class="sub-menu gray-hover font-size-nav cursor activate-font" v-for="val in navigations" :key="val"
-        :class="{activate: val===isActivate}" @click="changeNav(val)">
-        {{val}}
+      <p class="sub-menu gray-hover font-size-nav cursor activate-font" v-for="(val, key) in navigations" :key="key"
+        :class="{activate: key===isActivate}" @click="changeNav(key)">
+        {{key}}
       </p>
     </div>
 
@@ -14,13 +14,22 @@ export default {
   name: 'Nav',
   data() {
     return {
-      navigations: ['发现音乐', '视频', '关注'],
-      isActivate: '发现音乐'
+      navigations: {'发现音乐': '/discover',
+        '视频': '/discover',
+        '关注': '/discover'
+      },
+    }
+  },
+  computed: {
+    isActivate() {
+      return this.$store.state.currNav;
     }
   },
   methods: {
     changeNav(val) {
-      this.isActivate = val;
+      if (val === this.isActivate) return;
+      this.$store.commit('setNavigationName', { name: val });
+      this.$router.push(this.navigations[val]);
     }
   },
 }

@@ -1,8 +1,8 @@
 <template>
   <div>
-    <div class="cover cursor" :style="defaultStyle" @click="handleClick">
-      <img class="pic" :src="playlist.picUrl || playlist.coverImgUrl" alt="">
-      <span class="play-count">
+    <div class="cover cursor" @click="handleClick">
+      <img :src="playlist.picUrl || playlist.coverImgUrl" alt="">
+      <span>
         <svg class="icon" aria-hidden="true">
           <use xlink:href="#icon-music-play-count"></use>
         </svg>
@@ -20,15 +20,10 @@ export default {
       type: Object,
       default: {}
     },
-    'defaultStyle': {
-      type: Object,
-      default: function () {
-        return { width: '10rem', height: '10rem'}      
-      } 
-    }
   },
   methods: {
     handleClick() {
+      this.$store.commit('setNavigationName', { name: '歌单详情' });
       this.$router.push( { name: '歌单详情', params: { id: this.playlist.id } } );
     }
   },
@@ -37,10 +32,21 @@ export default {
 <style scoped>
   .cover {
     position: relative;
+    width: 100%;
+    padding-top: 100%;
     border-radius: 0.3rem;
   }
-  .play-count {
+  .cover > img {
     position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    border-radius: 0.3rem;
+  }
+  .cover > span {
+    position: absolute;
+    top: 0;
     right: 1rem;
     color: white;
   }
@@ -54,9 +60,5 @@ export default {
     bottom: 1rem;
     font-family: "iconfont" !important;
     font-size: 1.5rem;
-  }
-  .pic {
-    width: 100%;
-    border-radius: 0.3rem;
   }
 </style>

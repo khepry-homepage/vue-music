@@ -12,14 +12,15 @@
     </div>
     <div class="box">
       <el-scrollbar>  
-        <router-view class="box-margin-LR"> 
+        <router-view :animateId="this.animateId"> 
         </router-view> 
       </el-scrollbar>  
+      <animated-loading :id="this.animateId" :defaultStyle="{width: '2rem', height: '2rem'}" />
     </div>
- 
   </div>
 </template>
 <script>
+
 export default {
   name: 'Discover',
   data() {
@@ -28,11 +29,12 @@ export default {
         '个性推荐': '/discover/recommend', 
         '专属订制': '/discover/2', 
         '歌单': '/discover/playlists',
-        '排行榜': '/discover/4',
-        '歌手': '/discover/5',
-        '最新音乐': '/discover/6'
+        '排行榜': '/discover/ranklist',
+        '歌手': '/discover/artistlsit',
+        '最新音乐': '/discover/newsongview'
       },
-      activeMenu: '个性推荐'
+      activeMenu: '个性推荐',
+      animateId: new Date().getTime()
     }
   },
   mounted() {
@@ -65,6 +67,7 @@ export default {
   }
   .box {
     height: calc(100vh - 15rem);
+    position: relative;
   }
   .box .el-scrollbar {
     height: 100%;

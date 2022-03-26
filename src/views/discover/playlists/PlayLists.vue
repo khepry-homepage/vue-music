@@ -1,5 +1,5 @@
 <template>
-  <div>      
+  <div class="box-margin-LR">      
     <div ref="target" class="banner" >
       <img class="bg-pic" :src="eliteLists[0].coverImgUrl" alt="">
       <img class="pic" :src="eliteLists[0].coverImgUrl" alt="">
@@ -9,10 +9,10 @@
       </div>
     </div>
     <div class="opt-menu">
-      <span @click="isShow = !isShow">{{currCat}}&#xe625;</span>
+      <span class="common-button cursor" @click="isShow = !isShow">{{currCat}}&#xe625;</span>
       <div class="item" v-show="isShow">
         <div class="all-list">
-          <button @click="selectTag('全部歌单')" :class="{activate: currCat === '全部歌单'}" class="tag-button">全部歌单</button>
+          <span @click="selectTag('全部歌单')" :class="{ 'activate-tag': currCat === '全部歌单' }" class="select-tag cursor">全部歌单</span>
         </div>
         <div>
           <div class="tags-category" v-for="(val, key) in categories" :key="key">
@@ -22,9 +22,9 @@
             <div class="tags">
               <div @click="selectTag(tag.name)" class="tag" v-for="tag in list[key]" 
                   :key="tag.name">
-                <button :class="{activate: currCat === tag.name}" class="tag-button">
+                <span :class="{ 'activate-tag': currCat === tag.name }" class="select-tag cursor">
                   {{tag.name}}
-                </button>
+                </span>
               </div>       
             </div>
           </div>
@@ -35,8 +35,7 @@
     <div class="playlists">
       <SinglePlayList v-for="(playlist, idx) in playlists" 
         :key="idx" 
-        :playlist="playlist"
-        :defaultStyle="{'width': '10rem', 'height': '10rem'}">
+        :playlist="playlist">
         <template v-slot:desc>
           <p class="pl-desc">{{playlist.name}}</p>
         </template>
@@ -58,7 +57,11 @@ import SinglePlayList from 'components/SinglePlayList'
 export default {
   name: 'PlayLists',
   components: {SinglePlayList},
-  props: {},
+  props: {
+    animateId: {
+      require: true
+    }
+  },
   data() {
     return {
       isShow: false,
@@ -90,7 +93,7 @@ export default {
           cat: this.currCat,
           offset
         }
-      })
+      }, {id: this.animateId})
     },
     // 请求指定类别的精品歌单，默认为50条记录
     quleryElitePlayLists() {
@@ -99,7 +102,7 @@ export default {
         data: {
           cat: this.currCat
         }
-      })
+      }, {id: this.animateId})
     },
     // 并行请求指定类别的歌单和精品歌单
     queryAllLists() {
@@ -118,7 +121,7 @@ export default {
   created() {
     this.$comReq({
       url: '/playlist/catlist'
-    })
+    }, {id: this.animateId})
     .then(res => {
       this.categories = res.categories;
       for (let key in res.categories) {
@@ -130,8 +133,6 @@ export default {
     })
     .catch(err => err)
     this.queryAllLists();
-  },
-  mounted() {
   }
 };
 </script>
@@ -144,9 +145,6 @@ export default {
   border: 1px solid rgb(136, 136, 136);
   border-radius: 0.3rem;
   overflow: hidden;
-}
-.desc {
-  margin-left: 1rem;
 }
 .banner-desc {
   color: white;
@@ -195,15 +193,10 @@ export default {
   width: 8rem;
   height: 2rem;
 }
-.tag-button {
+.desc, .tag > span, .all-list > span {
   margin-left: 1rem;
-  padding: 0.2rem 0.5rem 0.2rem 0.5rem;
-  border-radius: 0.8rem;
-  font-size: 1rem;
-  border: none;
-  background: none;
 }
-.tag:hover > button {
+.all-list:hover > span, .tag:hover > span {
   color: red;
 }
 .all-list {
@@ -217,20 +210,17 @@ export default {
   flex-wrap: wrap;  /* 自动换行 */
   justify-content: space-between;
 }
+.playlists > div {
+  flex: 0 1 calc((100% - 4rem) / 5); /* 1行显示5列，计算除间距外每个盒子对应宽度 */
+  margin-right: 1rem; /* 盒间间距 */
+  margin-bottom: 1rem;
+}
+.playlists > div:nth-child(5n) {
+  margin-right: 0 !important;
+}
 .pl-desc {
   width: 10rem;
   margin: 0.3rem 0 0.3rem 0;
-}
-.all-list > span {
-  width: 5rem;
-  height: 2rem;
-  border-radius: 1rem;
-  line-height: 2rem;
-  margin: 1rem 1rem;
-}
-.activate {
-  background-color: rgb(243, 169, 141);
-  color: red;  
 }
 .opt-menu {
   margin: 1rem 0 1rem 0;
@@ -246,9 +236,6 @@ export default {
   line-height: 2rem;
   border: 1px solid rgb(197, 197, 197);
   overflow: hidden;
-}
-.opt-menu > span:nth-child(1):hover {
-  background-color: rgb(197, 197, 197);
 }
 .pagination {
   display: flex;

@@ -30,7 +30,7 @@
         <span class="current-time">{{formatCur}}</span>
         <div class="progress-bar">
           <input ref="glideBar" type="range" step="1" min="0" :max="audio.duration" id="glide-bar" 
-                      v-model="audio.currentTime"
+            v-model="audio.currentTime"
             @input="handleChangeInput($event)">
         </div>
         <span class="duration">{{formatDur}}</span>
@@ -48,10 +48,10 @@
           </div>
           <span @click="handleMute" class="iconfont cursor menu-icon">{{audio.isMute ? '&#xe673;' : '&#xe672;'}}</span>
         </el-tooltip>
-        <span @click="isShowList = !isShowList" class="iconfont cursor menu-icon">&#xea86;</span>
+        <span @click="isShowList = !isShowList;" class="iconfont cursor menu-icon">&#xea86;</span>
       </div>    
     </div>
-    <div class="playlist" v-show="isShowList">
+    <div class="playlist" ref="playlist" v-show="isShowList">
       <div class="list-header">
         <h2>当前播放</h2>
         <span>总{{playlist.length}}首</span>
@@ -128,7 +128,8 @@ export default {
         }, 
       },
       prevVolume: 100,
-      isShowList: false
+      isShowList: false,
+      hasBlur: 0, // 0: 未触发blur事件 1: 已先触发blur事件
     }
   },
   props: {
@@ -288,7 +289,7 @@ export default {
       if (this.mode === 0) this.jump(true); // 顺序播放
       else if (this.mode === 1) this.jump(true, {isRandom: true});  // 随机播放
       else if (this.mode === 2) this.$refs.audio.play(); // 单曲循环模式或者播放列表只有一首歌那重新播放
-    }
+    },
   },
 }
 </script>
@@ -333,6 +334,8 @@ export default {
   border-bottom: 1px solid rgb(202, 202, 202);
 }
 .playlist {
+  display: flex;
+  flex-direction: column;
   position: absolute;
   width: 30rem;
   top: -1px;
@@ -343,7 +346,8 @@ export default {
   box-shadow: 0 0 4px rgb(202, 202, 202);
 }
 .song-list {
-  height: 10rem;
+  flex: 1;
+  overflow: hidden;
 }
 .song-name {
   display: inline-block;
