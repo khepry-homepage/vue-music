@@ -1,6 +1,9 @@
 # music
 
+[demo](http://khepry-music.southeastasia.cloudapp.azure.com)
+
 ## Project setup
+
 ```
 npm install
 ```
