@@ -130,6 +130,11 @@ export default {
   created() {
     this.queryArtists();
   },
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      vm.$bus.$emit('setDisMenuName', { name: '歌手'} );
+    })
+  },
   mounted() {
     this.$parent.$refs['wrap'].onscroll = this.getScrollHeight;
   }

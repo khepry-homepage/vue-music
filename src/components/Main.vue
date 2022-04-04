@@ -14,6 +14,18 @@ export default {
     Nav,
     Discover,
     PlayListView,
+  },
+  methods: {
+    routeArtist( { id } ) {
+      this.$store.commit('setNavigationName', { name: '歌手主页' })
+      this.$router.push( { name: '歌手主页', params: { id } } );
+    }
+  },
+  mounted() {
+    this.$bus.$on('routeArtist', this.routeArtist);
+  },
+  beforeDestroy() {
+    this.$bus.$off('routeArtist');
   }
 }
 </script>
@@ -24,11 +36,10 @@ export default {
     display: flex;
     flex-direction: row;
     border-right: 1px solid black;
-    border-bottom: 1px solid black;
     border-left: 1px solid black;
   }
   .nav-bar {
-    flex: 1 1 20%;
+    flex: 0 1 20%;
     border-right: 0.1rem solid gray;
   }
   .content-show {

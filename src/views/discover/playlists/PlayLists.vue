@@ -1,8 +1,8 @@
 <template>
   <div class="box-margin-LR">      
     <div ref="target" class="banner" >
-      <img class="bg-pic" :src="eliteLists[0].coverImgUrl" alt="">
-      <img class="pic" :src="eliteLists[0].coverImgUrl" alt="">
+      <img class="bg-pic" v-lazy="eliteLists[0].coverImgUrl" alt="">
+      <img class="pic" v-lazy="eliteLists[0].coverImgUrl" alt="">
       <div class="desc">
         <span class="banner-desc">{{eliteLists[0].name}}</span><br/>
         <span class="extra-desc">{{eliteLists[0].copywriter}}</span>
@@ -133,6 +133,11 @@ export default {
     })
     .catch(err => err)
     this.queryAllLists();
+  },
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      vm.$bus.$emit('setDisMenuName', { name: '歌单' } );
+    })   
   }
 };
 </script>

@@ -9,7 +9,7 @@ const store = new Vuex.Store({
       songId: null,
       isPlay: false,
       isLike: false,
-      isLogin: true,
+      isLogin: false,
       playMode: 0, // 播放模式 0: 顺序播放 1: 随机播放 2: 单曲循环播放
       showLoginMenu: false,
       userInfo: {
@@ -50,6 +50,7 @@ const store = new Vuex.Store({
     },
     // 添加歌曲到播放列表
     updatePlaylist(state, {song, isAdd}) {
+      if (!song || !song.id)  return;
       if (isAdd && !state.userInfo.listIds.has(song.id)) {
         state.userInfo.playlist.push(song);
         state.userInfo.listIds.add(song.id);
@@ -61,6 +62,7 @@ const store = new Vuex.Store({
       }
     },
     updateAudioUrl(state, {songId}) {
+      if (!songId)  throw new Error('error in songId is undefined');
       state.songId = songId;
       state.isLike = state.userInfo.likelist.has(songId)?true:false;
     },
@@ -86,13 +88,13 @@ const store = new Vuex.Store({
       state.showLoginMenu = false;
     },
     // 修改并更新喜欢状态
-    setLikeState(state, {isLike}) {
+    setLikeState(state, {songId, isLike}) {
       // 登录后才能进行添加/取消喜欢操作
       if (state.isLogin) {
-        if (isLike) state.userInfo.likelist.add(state.songId);
-        else state.userInfo.likelist.delete(state.songId);
+        if (isLike) state.userInfo.likelist.add(songId);
+        else state.userInfo.likelist.delete(songId);
       }
-      state.isLike = isLike;
+      if (songId == state.songId) state.isLike = isLike;
     }
   },
   actions: {
@@ -103,13 +105,15 @@ const store = new Vuex.Store({
         data: { uid }
       });
     },
-    // 邮箱登录
-    login(context, {email, password}) {
+    // 邮箱或手机号登录
+    login(context, {email, password, phone, captcha}) {
       comReq({
-        url: '/login',
+        url: email ? '/login' : '/login/cellphone',
         data: {
           email,
-          password
+          password,
+          phone, 
+          captcha,
         }
       })
       .then(res1 => {
@@ -142,7 +146,7 @@ const store = new Vuex.Store({
       })
       .then(res => {
         // 响应非200的状态码表示更新失败，需要把喜欢状态还原，因为该项目先设置本地喜欢状态再向远程同步
-        if (res.code !== 200) {
+        if (res.code != 200) {
           context.commit('setLikeState', !context.state.isLike);
         }
       })
@@ -151,40 +155,13 @@ const store = new Vuex.Store({
     }, 1000),
     // 添加歌单全部歌曲到播放列表
     addAllToList(context, {songs}) {
-      if (!songs) return;
+      if (!songs || songs.length == 0) return;
       context.commit('clearPlaylist');
       songs.some(song => {
         context.commit('updatePlaylist', {song, isAdd: true});
       })
       context.commit('updateAudioUrl', {songId: songs[0].id});
     },
-    // // 获取用户详情
-    // queryUserDetail(context, {id}) {
-    //   return comReq({
-    //     url: '/user/detail',
-    //     data: {
-    //       uid: id
-    //     }
-    //   })
-    // },
-    // // 获取账号信息
-    // queryAccountInfo(context) {
-    //   return comReq({
-    //     url: '/user/account'
-    //   })
-    // },
-    // // 获取用户全部信息
-    // queryUserInfo(context, {id}) {
-    //   encAxios.all([
-    //     context.dispatch('queryUserDetail',{id}), 
-    //     context.dispatch('queryAccountInfo')])
-    //   .then(encAxios.spread((res1, res2) => {
-    //     context.commit('setLoginState', {
-    //       res1,
-    //       res2
-    //     })
-    //   })) 
-    // } 
   }
 })
 

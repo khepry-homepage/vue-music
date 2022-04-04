@@ -15,7 +15,7 @@ export default {
   data() {
     return {
       navigations: {'发现音乐': '/discover',
-        '视频': '/discover',
+        '视频': '/video',
         '关注': '/discover'
       },
     }

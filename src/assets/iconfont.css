@@ -2,9 +2,9 @@
   font-family: "iconfont"; /* Project id 3223027 */
   /* Color fonts */
   src: 
-       url('iconfont.woff2?t=1647489926793') format('woff2'),
-       url('iconfont.woff?t=1647489926793') format('woff'),
-       url('iconfont.ttf?t=1647489926793') format('truetype');
+       url('iconfont.woff2?t=1649002531122') format('woff2'),
+       url('iconfont.woff?t=1649002531122') format('woff'),
+       url('iconfont.ttf?t=1649002531122') format('truetype');
 }
 
 .iconfont {
@@ -13,6 +13,42 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-phone-iphone:before {
+  content: "\eb81";
+}
+
+.icon-mima:before {
+  content: "\e679";
+}
+
+.icon-youxiang:before {
+  content: "\e68b";
+}
+
+.icon-yunhang:before {
+  content: "\e612";
+}
+
+.icon-close:before {
+  content: "\e6e9";
+}
+
+.icon-lyric-stop:before {
+  content: "\e87c";
+}
+
+.icon-next:before {
+  content: "\e8aa";
+}
+
+.icon-last:before {
+  content: "\e921";
+}
+
+.icon-lyric-play:before {
+  content: "\e750";
 }
 
 .icon-stop:before {

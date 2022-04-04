@@ -17,21 +17,6 @@ export default {
     Main,
     Footer
   },
-  mounted() {
-    // setFontSize()
-      // function setFontSize(){
-      //     let designWidth = 1280;//设计稿的宽度，根据实际项目调整
-      //     let designHeight = 1120;//设计稿的高度，根据实际项目调整
-      //     var fontSize = 
-      //         document.documentElement.clientWidth/document.documentElement.clientHeight < designWidth/designHeight ? 
-      //         (document.documentElement.clientWidth / designWidth) * 16:
-      //         (document.documentElement.clientHeight / designHeight) * 16;
-      //     document.querySelector('html').style.fontSize = fontSize + 'px';
-      // }
-      // window.onresize = function () {
-      //     setFontSize()
-      // };
-  },
 }
 </script>
 
@@ -44,12 +29,16 @@ body {
   height:100%;
   margin-top: 0;
   margin-bottom: 0;
+  margin-right: 1px;
+  margin-left: 1px;
 }
 /* 浏览器窗口缩放时重新计算html字体标准大小 */
 @media screen {
   /* 设计稿大小: 1280 * 1120 */
   html {
     font-size: 1.25vw;
+    min-width: 620px;
+    min-height: 600px;
   }
 }
 p {
@@ -74,7 +63,8 @@ p {
 }
 #app > div:nth-child(even) {
   width: 100%;
-  flex: 1;
+  height: 0;
+  flex: 1 0;
 }
 #app > div:nth-child(odd) {
   width: 100%;
@@ -103,8 +93,8 @@ p {
   border-radius: 1rem;
 }
 .activate-tag {
-  background-color: rgb(246, 204, 189);
-  color: red;  
+  background-color: rgb(246, 204, 189) !important;
+  color: red !important;  
 }
 
 .cursor {
@@ -130,6 +120,9 @@ p {
 }
 .red-font {
   color: red;
+}
+.blue-font {
+  color: rgb(85, 85, 241);
 }
 .white-font {
   color: white;

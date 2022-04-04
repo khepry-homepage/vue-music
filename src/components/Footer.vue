@@ -3,7 +3,7 @@
     <div class="song-info flex-row-vertical-center">
       <div class="flex-row-vertical-center">
         <div v-show="this.$store.state.songId" class="banner flex-row-center cursor">
-          <img class="song-avatar" :src="info.picUrl" alt="">
+          <img class="song-avatar" v-lazy="info.picUrl" alt="">
         </div>
         <div v-show="this.$store.state.songId">
           <div class="flex-row-vertical-center">
@@ -35,7 +35,7 @@ export default {
         alias: null,
         artists: null,
       },
-      isOverflow: false
+      isOverflow: false,
     }
   },
   computed: {
@@ -57,7 +57,7 @@ export default {
     },
     changeLike() {
       // 修改本地喜欢状态
-      this.$store.commit('setLikeState', {isLike: !this.isLike});
+      this.$store.commit('setLikeState', {songId: this.$store.state.songId, isLike: !this.isLike});
       // 登录后才会同步账号喜欢状态
       if (this.$store.state.isLogin) {
         this.$store.dispatch('updateLikeState');
@@ -65,15 +65,55 @@ export default {
     },
     refreshComponent() {
       this.info = this.$options.data().info;
-    }
+    },
+    // 请求歌曲详情
+    querySongDetail( { ids } ) {
+      return this.$comReq({
+        url: '/song/detail',
+        data: {
+          ids
+        }
+      })
+    },
+    // 请求歌曲url
+    querySongUrl( { ids } ) {
+      return this.$comReq({
+        url: '/song/url',
+        data: {
+          id: ids
+        }
+      })
+    },
+    async playAllSongsAsync( { ids } ) {
+      if (confirm('播放全部歌曲会替换现有播放列表，确认替换?')) {
+        let songs = null;
+        await  this.$encAxios.all([this.querySongDetail( { ids } ), this.querySongUrl( { ids } )])
+          .then(this.$encAxios.spread((res1, res2) => {
+            if (res1.code != 200 || res2.code != 200) throw new Error('happen error in request: song/detail and song/url');
+            songs = res1.songs.sort((s1, s2) => s1.id - s2.id);
+            let songsUrl = res2.data.sort((s1, s2) => s1.id - s2.id);
+            let index = 0;
+            songs.some(song => {
+              if (index >= song.length) return true;
+              if (song.id === songsUrl[index].id) {
+                song.url = songsUrl[index].url;
+                ++index;
+              }
+            })
+          }))
+          .catch(err => console.log(err.message))
+        if (songs)  this.$store.dispatch('addAllToList', {songs: songs.filter(song => song.url)});
+      }      
+    }, 
   },
   components: {
     Audio
   },
   mounted() {
-    this.$refs['animate-target'].addEventListener('resize', () => {
-      console.log(this.$refs['animate-target']);
-    })
+    this.$bus.$on('playAllSongsAsync', this.playAllSongsAsync);
+  },
+  beforeDestroy() {
+    this.$bus.$off('playAllSongsAsync');
   }
 }
 </script>
@@ -96,8 +136,11 @@ export default {
 }
 
 .music-footer {
+  position: relative;
   display: flex;
   border: 1px solid black;
+  background-color: white;
+  z-index: 1999;
 }  
 .song-info {
   flex: 3 3 30%;

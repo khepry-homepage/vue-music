@@ -7,6 +7,7 @@ function comReq(option, {id} = {}) {
       method: 'post',
       withCredentials: true,
     });
+    
     // axios请求拦截器
     initInterceptors(instance1, {id});
     instance1(option)
@@ -20,6 +21,9 @@ const encAxios = (function () {
     baseURL: 'https://netease-cloud-music-api-gilt-seven.vercel.app',
     method: 'post',
     withCredentials: true,
+    data: {
+      realIP: '116.25.146.177',
+    }
   });  
   instance2.all = axios.all;
   instance2.spread = axios.spread;  

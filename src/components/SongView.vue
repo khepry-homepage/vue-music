@@ -1,7 +1,7 @@
 <template>
   <div class="single-song" :style="defaultStyle">
-    <div class="banner cursor">
-      <img :src="newsong.picUrl || newsong.album.blurPicUrl" :style="imgSize" alt="">
+    <div class="banner cursor" @click="playSong">
+      <img v-lazy="newsong.picUrl || newsong.album.blurPicUrl" :style="imgSize" alt="">
     </div>
     <div class="song-info flex-col-vertical-center">
       <slot :ns="newsong"></slot>
@@ -12,7 +12,6 @@
 <script>
 export default {
   name: 'SongView',
-  components: {},
   props: {
     newsong: {},
     defaultStyle: {
@@ -28,15 +27,11 @@ export default {
       }
     }
   },
-  watch: {
+  methods: {
+    playSong() {
+      this.$store.commit('updateAudioUrl', { songId: this.newsong.id } );
+    }
   },
-  computed: {},
-  methods: {},
-  created() {
-  
-  },
-  mounted() {
-  }
 };
 </script>
 <style scoped>

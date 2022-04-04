@@ -88,29 +88,7 @@ export default {
     },
     async handlePlayAllAsync() {
       if (!this.newsongs) return;
-      let ids = this.newsongs.map(song => song.id).join(',');
-      if (!this.songs) {
-        try {
-          const [res1, res2] = await this.$encAxios.all([this.querySongDeatil(ids), this.querySongUrl(ids)]);
-          if (res1.code !== 200 || res2.code !== 200) throw new Error('happen error in request: /song/detail and /song/url');
-          this.songs = res1.songs.sort((s1, s2) => s1.id - s2.id);
-          const songsUrl = res2.data.sort((s1, s2) => s1.id - s2.id);  
-          let index = 0;
-          this.songs.some(song => {    
-            while (index < songsUrl.length && song.id > songsUrl[index].id) {
-              ++index;
-            }
-            if (index >= songsUrl.length) return true;
-            if (song.id === songsUrl[index].id) {
-              song.url = songsUrl[index].url;
-            }
-          })
-          this.hasUrl = true; // true: 已缓存url false: 未请求过url
-        } catch (error) {
-          return error;
-        }
-      }
-      this.$store.dispatch('addAllToList', { songs: this.songs.filter(song => song.url) });
+      this.$bus.$emit('playAllSongsAsync', { ids: this.newsongs.map(song => song.id).join(',') });
     },
     queryNewSongs: debounce(function () {
       let type = this.areas[this.activateTag];
@@ -131,7 +109,11 @@ export default {
   created() {
     this.queryNewSongs();
   },
-  mounted() {}
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      vm.$bus.$emit('setDisMenuName', { name: '最新音乐'} );
+    })
+  }
 };
 </script>
 <style scoped>
@@ -143,6 +125,12 @@ export default {
 }
 .list {
   width: 100%;
+}
+.list > div:nth-child(1) {
+  border-top: 1px solid rgb(216, 214, 214);
+}
+.list > div {
+  border-bottom: 1px solid rgb(216, 214, 214);
 }
 .song-dish-option {
   display: flex;

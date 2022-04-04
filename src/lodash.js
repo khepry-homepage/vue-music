@@ -5,10 +5,10 @@ function debounce (func, delay, animation=()=>{}) {
     if (forbid) {
       clearTimeout(forbid);
       // 展示防抖提示动画
-      animation.apply(this);
+      animation.apply(this); 
     }
     forbid = setTimeout(() => {
-      func.apply(this);
+      func.apply(this, arguments);// 确保函数能接受到调用时传入的参数
     }, delay);
   }
 }

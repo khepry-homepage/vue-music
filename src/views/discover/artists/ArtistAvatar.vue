@@ -1,9 +1,9 @@
 <template>
   <div>
-    <div class="ar-pic cursor">
-      <img :src="artist.img1v1Url" alt="">
+    <div class="ar-pic cursor" @click="handleClick">
+      <img v-lazy="artist.img1v1Url" alt="">
     </div> 
-    <p class="cursor">{{artist.name}}</p>
+    <p class="cursor" @click="handleClick">{{artist.name}}</p>
   </div>
 </template>
 <script>
@@ -16,16 +16,11 @@ export default {
       require: true
     }
   },
-  data() {
-    return {
-
-    };
+  methods: {
+    handleClick() {
+      this.$bus.$emit('routeArtist', { id: this.artist.id });
+    }
   },
-  watch: {},
-  computed: {},
-  methods: {},
-  created() {},
-  mounted() {}
 };
 </script>
 <style scoped>

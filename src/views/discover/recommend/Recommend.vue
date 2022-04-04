@@ -2,10 +2,10 @@
   <div class="box-margin-LR">
     <el-carousel :interval="4000" type="card" height="200px">
       <el-carousel-item v-for="(banner, idx) in banners" :key="idx">
-        <img class="banner" :src="banner.imageUrl" alt="">
+        <img class="banner" v-lazy="banner.imageUrl" alt="">
       </el-carousel-item>
     </el-carousel>    
-    <h3 class="title-tag">推荐歌单</h3>
+    <h3 class="title-tag cursor" @click="routePlaylist">推荐歌单</h3>
     <div class="playlists">
       <SinglePlayList v-for="(playlist, idx) in playlists" 
         :key="idx" 
@@ -15,7 +15,7 @@
         </template>
       </SinglePlayList>
     </div>
-    <h3 class="title-tag">最新音乐</h3>
+    <h3 class="title-tag cursor" @click="routeNewSong">最新音乐</h3>
     <div class="newsong">
       <SongView v-for="(newsong, idx) in newsongs" 
         :key="idx" 
@@ -26,11 +26,12 @@
         :class="{activate: activateIdx === idx}">
         <template v-slot="message">
           <div>{{message.ns.name}}<span v-if="message.ns.song.alias.length" class="addition-font">（{{message.ns.song.alias[0]}}）</span></div>
-          <div>
-            <span v-for="(artist, idx) in message.ns.song.artists" 
-              :key="idx"
-              class="addition-font">
-              {{artist.name + (idx !== message.ns.song.artists.length-1 ? ' / ':'')}}
+          <div class="artist-name">
+            <span v-for="artist in message.ns.song.artists" 
+              :key="artist.id"
+              class="cursor addition-font"
+              @click="routeArtist(artist.id)">
+              {{artist.name}}
             </span>  
           </div>
         </template>
@@ -83,7 +84,7 @@ export default {
       return  this.$comReq({
         url: '/personalized',
         data: {
-          limit: 8
+          limit: 10
         }
       }, {id: this.animateId})
     },
@@ -104,7 +105,21 @@ export default {
     },
     handleClick(index) {
       this.activateIdx = index;
+    },
+    routePlaylist() {
+      this.$router.push( { name: '歌单' } );
+    },
+    routeNewSong() {
+      this.$router.push( { name: '最新音乐' } );
+    },
+    routeArtist(id) {
+      this.$router.push( { name: '歌手详情', params: { id } } );
     }
+  },
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      vm.$bus.$emit('setDisMenuName', { name: '个性推荐'} );
+    })
   },
 }
 </script>
@@ -129,7 +144,15 @@ export default {
   .playlists, .newsong {
     display: flex;
     flex-wrap: wrap;  /* 自动换行 */
-    justify-content: space-between;
+  }
+  .playlists > div {
+    flex: 0 1 calc((100% - 4rem) / 5);
+    width: 0;
+    margin-right: 1rem;
+    margin-bottom: 1rem;
+  }
+  .playlists > div:nth-child(5n) {
+    margin-right: 0;
   }
   .newsong > div {
     flex-basis: 32%;  /* 控制盒子宽度为32%，则盒间间距为2% */
@@ -150,5 +173,12 @@ export default {
   .pl-desc {
     width: 10rem;
     margin: 0.3rem 0 0.3rem 0;
+  }
+  .artist-name > span:hover {
+    color: black;
+  }
+  .artist-name > span:nth-child(n + 2)::before {
+    content: ' / ';
+    color: black;
   }
 </style>

@@ -6,17 +6,17 @@
           <div slot="content">
             <span>{{audio.currentMode.modes[mode]}}</span>
           </div>
-          <div @click="handleChangeMode" class="play-mode">
+          <div @click="handleChangeMode" class="play-mode cursor">
             <svg class="icon" aria-hidden="true"><use :xlink:href="audio.currentMode.symbols[mode]"></use></svg>
           </div>
         </el-tooltip>
-        <div class="last-one" @click="jump(false)">
+        <div class="last-one cursor" @click="jump(false)">
           <svg class="icon" aria-hidden="true"><use xlink:href="#icon-music-last"></use></svg>
         </div>
-        <div id="play-mode" @click="handleChangeState">
+        <div id="play-mode" class="cursor" @click="handleChangeState">
           <svg class="icon" aria-hidden="true"><use :xlink:href="isPlay?'#icon-music-pause':'#icon-music-play'"></use></svg>
         </div>
-        <div class="next-one" @click="jump(true)">
+        <div class="next-one cursor" @click="jump(true)">
           <svg class="icon" aria-hidden="true"><use xlink:href="#icon-music-next"></use></svg>  
         </div>  
       </div>
@@ -48,7 +48,9 @@
           </div>
           <span @click="handleMute" class="iconfont cursor menu-icon">{{audio.isMute ? '&#xe673;' : '&#xe672;'}}</span>
         </el-tooltip>
-        <span @click="isShowList = !isShowList;" class="iconfont cursor menu-icon">&#xea86;</span>
+        <span @click="isShowList = !isShowList" class="iconfont cursor menu-icon">&#xea86;</span>
+        <span @click="isShowLyric = !isShowLyric" class="iconfont cursor lyric-show-icon menu-icon" 
+          :class="{'show-lyric': isShowLyric}">词</span>
       </div>    
     </div>
     <div class="playlist" ref="playlist" v-show="isShowList">
@@ -61,7 +63,7 @@
         <el-scrollbar style="height: 100%;">
           <el-table
             :data="playlist"
-            style="width: 99%"
+            style="width: 100%"
             :show-header="false"
             :row-key="song => song.id"
             highlight-current-row
@@ -107,6 +109,17 @@
         </el-scrollbar>
       </div>
     </div>
+    <div class="lyric-panel" v-show="isShowLyric" :class="{'lyric-hover': isLyricHover}"
+      @mouseenter="isLyricHover = true"
+      @mouseleave="isLyricHover = false">
+      <div class="lyric-tools" :class="{'lyric-tools-hidden': !isLyricHover}">
+        <span @click="jump(false)" class="iconfont cursor" style="font-size:1.5rem">&#xe921;</span>
+        <span @click="handleChangeState" class="iconfont cursor" style="font-size:1.5rem">{{isPlay ? '&#xe750;' : '&#xe87c;'}}</span>
+        <span @click="jump(true)" class="iconfont cursor" style="font-size:1.5rem">&#xe8aa;</span>
+        <span @click="isShowLyric = false" class="iconfont cursor" style="font-size:1.5rem">&#xe6e9;</span>
+      </div>
+      <div ref="lyric-text" class="lyric-text cursor">（无）</div>
+    </div>
   </div>
 </template>
 
@@ -129,7 +142,12 @@ export default {
       },
       prevVolume: 100,
       isShowList: false,
+      isShowLyric: false,
+      isLyricHover : false,
       hasBlur: 0, // 0: 未触发blur事件 1: 已先触发blur事件
+      lyric: null,
+      lyricIdx: 0,
+      animateInstance: null,
     }
   },
   props: {
@@ -186,9 +204,11 @@ export default {
       if (!this.$refs.audio.src) return;
       if (newVal) {
         this.$refs.audio.play();
+        if (this.animateInstance && this.animateInstance.playState == 'paused')  this.animateInstance.play();
       }
       else {
         this.$refs.audio.pause();
+        if (this.animateInstance && this.animateInstance.playState == 'running')  this.animateInstance.pause();
       }
     },
     'audio.volume'(newValue) {
@@ -223,7 +243,7 @@ export default {
       this.$store.commit('setPlayMode', {mode: (this.mode + 1) % this.audio.currentMode.modes.length});
     },
     jump(isNext, {isRandom} = {isRandom:false}){
-      if (this.playlist.length <= 1) return;
+      if (this.playlist.length < 1) return;
       let id;
       let len = this.playlist.length;
       if (!isRandom) {
@@ -257,15 +277,54 @@ export default {
         }
       })
     },
+    // lrc格式的歌词解析
+    parseLrc(lyric) {
+      const words = lyric.replace(/\n$/).split(/[\n]/);
+      let words1 = words.map(word => {
+          const array = [...word.matchAll(/(\[.*\])(.*)/g)][0];
+          return {
+              text: array[array.length - 1],
+              startTime: array[array.length - 2],
+          };
+      })
+      let prev = 0;
+      for (let index = words1.length - 1; index >= 0; --index) {
+        let str = words1[index].startTime;
+        let strArray = str.replace(/[\[\]]/g, '').split(':');
+        let st = 0;
+        for (let t in strArray) {
+          st *= 60;
+          st += Number.parseFloat(strArray[t]);
+        }
+        words1[index].startTime = Math.round(st * 100) / 100; // 保留两位小数
+        words1[index].endTime = prev; // bug：api返回歌词时间戳有问题，可能出现endTime < startTime
+        words1[index].durationTime = Math.round((words1[index].endTime - words1[index].startTime) * 100) / 100;
+        prev = st;
+      }
+      return words1;
+    },
     handleUpdateInfo(song) {
       if (!song.url) throw new Error('url invalid');
-      this.audio.duration = song.dt / 1000;
-      this.audio.srcUrl = song.url; 
-      this.$refs.audio.load();
-      if (this.isPlay) {
-        this.$nextTick(() => this.$refs.audio.play());
-      }
-      this.updateInfo({song});
+      this.$comReq({
+        url: '/lyric',
+        data: {
+          id: song.id
+        }
+      })
+      .then(res => {
+        if (res.code != 200)  throw new Error('error in request lyric');
+        this.lyric = this.parseLrc(res.lrc.lyric);
+        this.lyricIdx = 0;
+        this.animateInstance = null;
+        this.audio.duration = song.dt / 1000;
+        this.audio.srcUrl = song.url; 
+        this.$refs.audio.load();
+        if (this.isPlay) {
+          this.$nextTick(() => this.$refs.audio.play());
+        }
+        this.updateInfo({song});
+      })
+      .catch(err => err)
     },
     handleClearList() {
       this.$refs.audio.load();
@@ -273,6 +332,9 @@ export default {
       this.$refs.glideBar.style.backgroundSize = 0;
       this.refreshComponent();
       this.$store.commit('clearPlaylist');
+      if (this.animateInstance)  this.animateInstance.cancel();
+      this.lyric = null;
+      this.$refs['lyric-text'].innerHTML = '（无）';
     },
     handleDbClick(row) {
       this.$store.commit('updateAudioUrl', {songId: row.id});
@@ -280,16 +342,57 @@ export default {
     handleChangeInput(event) {
       this.$refs.audio.currentTime = event.target.value;
       event.target.style.backgroundSize = `${100 * event.target.value / event.target.max}%`;
+      
+      for (let i = 0; i < this.lyric.length; ++i) {
+        if (this.lyric[i].startTime <= event.target.value && event.target.value <= this.lyric[i].endTime) {
+          this.lyricIdx = i;
+          if (this.animateInstance)  this.animateInstance.cancel();
+          this.$refs['lyric-text'].innerHTML = this.lyric[this.lyricIdx].text;
+          this.$refs['lyric-text'].style.backgroundSize = `${100 * (event.target.value - this.lyric[i].startTime) / this.lyric[i].durationTime}%`; 
+               
+          break;
+        }
+      }
     },
     handleTimeUpdate(event) {
+      // 时间戳校准开始播放歌词动画
+      // console.log(event.target.currentTime, this.lyric[this.lyricIdx].startTime);   
+      if (!this.isPlay) return;
+      if (this.lyric && this.lyricIdx < this.lyric.length) {
+        let lyric = this.$refs['lyric-text'];
+        if (!this.animateInstance || this.animateInstance.playState == 'finished') {   
+          lyric.innerHTML = this.lyric[this.lyricIdx].text == '' ? '（无）' : this.lyric[this.lyricIdx].text; 
+          lyric.style.backgroundSize = '0%'; 
+        }
+        if (event.target.currentTime >= this.lyric[this.lyricIdx].startTime) {
+          if (this.lyric[this.lyricIdx].endTime > event.target.currentTime) {
+            // 动画播放时间减少0.2s
+            let animateDuration = this.lyric[this.lyricIdx].endTime - event.target.currentTime > 0.2 
+              ? this.lyric[this.lyricIdx].endTime - event.target.currentTime - 0.2 : 0;
+            this.animateInstance = lyric.animate(
+            [
+              { backgroundSize: this.$refs['lyric-text'].style.backgroundSize},
+              { backgroundSize: '100%'},
+            ], animateDuration * 1000
+            );  
+          }
+          ++this.lyricIdx;
+        }   
+      }
+
       this.$refs.glideBar.style.backgroundSize = `${100 * event.target.currentTime / this.audio.duration}%`;
       this.audio.currentTime = event.target.currentTime;
     },
     handleEnd() {
-      if (this.mode === 0) this.jump(true); // 顺序播放
-      else if (this.mode === 1) this.jump(true, {isRandom: true});  // 随机播放
-      else if (this.mode === 2) this.$refs.audio.play(); // 单曲循环模式或者播放列表只有一首歌那重新播放
+      if (this.mode == 2 || this.playlist.length == 1) {
+        this.$refs.audio.play(); // 单曲循环模式或只有一首歌重新播放
+        this.lyricIdx = 0;
+      }
+      else if (this.mode == 0) this.jump(true); // 顺序播放
+      else if (this.mode == 1) this.jump(true, {isRandom: true});  // 随机播放
     },
+  },
+  mounted() { 
   },
 }
 </script>
@@ -336,12 +439,11 @@ export default {
 .playlist {
   display: flex;
   flex-direction: column;
-  position: absolute;
-  width: 30rem;
-  top: -1px;
+  position: fixed;
   right: 0;
-  height: 40rem;
-  transform: translateY(-100%);
+  bottom: calc(5rem + 1px);
+  width: 30rem;
+  height: 30rem;
   background: white;
   box-shadow: 0 0 4px rgb(202, 202, 202);
 }
@@ -377,7 +479,7 @@ input[type=range] {
   width: 100%;
   margin: 0px;
   border-radius: 0.5rem; /*这个属性设置使填充进度条时的图形为圆角*/
-  background: -webkit-linear-gradient(#059cfa, #059cfa) no-repeat;
+  background: -webkit-linear-gradient(#323333, #343435) no-repeat;
   background-size: 0% 100%;
 }
 
@@ -402,11 +504,11 @@ input[type=range]:focus {
 /* 鼠标移动到滑块上时添加滑块样式并修改进度条高度 */
 .progress-bar:hover > input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  height: 0.8rem;
-  width: 0.8rem;
-  transform: translateX(-50%); /*滑块居中 */
-  background: -webkit-linear-gradient(#58bfff, #58bfff) no-repeat;
-  border-radius: 50%; /*外观设置为圆形*/
+  height: 1rem;
+  width: 1rem;
+  background: url('../assets/slideThumb.jpg') no-repeat center / contain;
+  box-shadow: 0 0 1px black;
+  border-radius: 0.2rem;
 }
 .progress-bar:hover > input[type="range"] {
   height: 0.7rem;
@@ -417,5 +519,50 @@ input[type=range]:focus {
   vertical-align: -0.3em;
   fill: currentColor;
   overflow: hidden;
+}
+
+
+.lyric-panel {
+  position: fixed;
+	left: 50%;
+	top: calc(100% - 10rem);
+	transform: translateX(-50%);
+  border-radius: 0.5rem;
+  min-width: 40rem;
+  font-size: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+}
+.lyric-hover {
+  background: rgba(134, 134, 134, 0.8);
+  pointer-events: auto;
+}
+.lyric-tools-hidden {
+  visibility: hidden;
+}
+.lyric-text {
+  background-clip: text;
+  -webkit-text-stroke: 0.5px darkgrey;  /* 添加文字外沿边框 */
+  background: white -webkit-linear-gradient(left, red, red) no-repeat 0 0; /* 初始背景色为白色，并且设置背景图像颜色自左向右渐变 */ 
+  -webkit-background-clip: text; /* 背景色只填充文字内容 */
+  -webkit-text-fill-color: transparent; /* 文字内容镂空(置透明色) */
+  white-space: nowrap;
+  text-align: center;
+  background-size: 0 100%; /* 初始背景图像宽0、高度100% */
+}
+.lyric-tools > span {
+  margin-right: 1rem;
+}
+.lyric-tools > span:hover {
+  opacity: 0.5;
+}
+.show-lyric {
+  color: red;
+}
+.lyric-show-icon:hover {
+  color: red;
 }
 </style>

@@ -2,14 +2,16 @@
   <div class="search">
     <label for="search-bar" class="iconfont">&#xe648;</label>
     <input v-model="inputValue" type="text" id="search-bar" autocomplete="off" 
+      placeholder="搜索"
       @input="changeInput"
       @focus="handleFocus"
-      @blur="handleBlur">
+      @blur="handleBlur"
+      @keypress.enter="handleSearch">
     <div v-show="show" class="search-item">
       <el-scrollbar>
         <div v-if="!inputValue">
           <h3 class="flush-left">热搜榜</h3>
-          <div class="state cursor" v-for="(song, idx) in hotSearch" :key="idx">
+          <div class="state cursor" v-for="(song, idx) in hotSearch" :key="idx" @mousedown="handleSearch( {keyword: song.searchWord} )">
             <div class="font-horCenter index flush-left" :class="{'top-three-index': idx < 3}">{{idx + 1}}</div>
             <div class="detail flex-row-vertical-center">
               <div class="overflow-replace-ellipsis">
@@ -25,7 +27,7 @@
         </div>
         <div v-else>
           <h3 class="flush-left" :class="{'null-result': suggest.keywords && !suggest.keywords.length}" v-show="suggest.keywords">猜你想搜</h3>
-          <div class="gray-hover list-row" v-for="keyword in suggest.keywords" :key="keyword">
+          <div class="gray-hover list-row" v-for="keyword in suggest.keywords" :key="keyword" @mousedown="handleSearch( {keyword, nav: '单曲'} )">
             <span class="flush-left font-half">{{keyword}}</span>
           </div>
           <h3 class="flush-left" :class="{'null-result': suggest.songs && !suggest.songs.length}" v-show="suggest.songs">单曲</h3>
@@ -35,11 +37,11 @@
             <span class="flush-left font-half">{{song.name+(song.alias.length?` (${song.alias})`:'')+' - '+song.artists[0].name}}</span>
           </div>
           <h3 class="flush-left" :class="{'null-result': suggest.artists && !suggest.artists.length}" v-show="suggest.artists">歌手</h3>
-          <div class="gray-hover list-row" v-for="artist in suggest.artists" :key="artist.id">
+          <div class="gray-hover list-row" v-for="artist in suggest.artists" :key="artist.id" @mousedown="handleSearch( {keyword: artist.name, nav: '歌手'} )">
             <span class="flush-left font-half">{{artist.name}}</span>
           </div>
           <h3 class="flush-left" :class="{'null-result': suggest.albums && !suggest.albums.length}" v-show="suggest.albums">专辑</h3>
-          <div class="gray-hover list-row" v-for="album in suggest.albums" :key="album.id">
+          <div class="gray-hover list-row" v-for="album in suggest.albums" :key="album.id" @mousedown="handleSearch( {keyword: album.name, nav: '专辑'} )">
             <span class="flush-left font-half">{{album.name+''}}</span>
           </div>
         </div>
@@ -53,8 +55,6 @@
 import {throttle} from '@/lodash.js'
 export default {
   name: 'Search',
-  components: {},
-  props: {},
   data() {
     return {
       show: false,
@@ -69,9 +69,6 @@ export default {
       animateId: new Date().getTime()
     };
   },
-  watch: {
-  },
-  computed: {},
   methods: {
     // 按歌曲名前缀是否匹配关键词来过滤结果，并且将歌曲名+歌手名作为关键字，按关键词长度升序排序
     filterByKeyword(target) {
@@ -158,6 +155,11 @@ export default {
     handleBlur() {
       this.show = false;
     },
+    handleSearch( {keyword = this.inputValue, nav = '单曲'} = {} ) { 
+      if (!keyword.trim() || !nav)  return;
+      this.inputValue = keyword;
+      this.$router.push( { name: '搜索结果', params: { keyword, nav } } );
+    },
     playSong(id) {
       this.$store.commit('updateAudioUrl', {songId: id})
     }
@@ -185,7 +187,9 @@ export default {
     border-radius: 1rem;
   }
   #search-bar {
-    width: 10rem;
+    width: 9rem;
+    font-size: 1rem;
+    margin-left: 0.5rem;
     color: white;
     border: none;
     outline: none;
@@ -200,7 +204,7 @@ export default {
     border: none;
     border-radius: 0.3rem;
     box-shadow: 0 0 5px rgb(177, 183, 189);
-    z-index: 1999;
+    z-index: 2000;
   }
   /* 前三索引标红 */
   .top-three-index {

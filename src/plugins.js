@@ -19,6 +19,11 @@ export default {
       return `${this >= 1e4 ? (this >= 1e8 ? Math.floor(this/1e8)+'亿' : Math.floor(this/1e4)+'万') : this}`
     }
 
+    // 将number格式化为01、02、……、10
+    Number.prototype.FormatSeq = function() {
+      return `${this <=9 ? `0${this}` : this}`
+    }
+
     // 对Date的扩展，将 Date 转化为指定格式的String
     // 月(M)、日(d)、小时(h)、分(m)、秒(s)、季度(q) 可以用 1-2 个占位符， 
     // 年(y)可以用 1-4 个占位符，毫秒(S)只能用 1 个占位符(是 1-3 位的数字) 

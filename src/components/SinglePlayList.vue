@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="cover cursor" @click="handleClick">
-      <img :src="playlist.picUrl || playlist.coverImgUrl" alt="">
+      <img v-lazy="playlist.picUrl || playlist.coverImgUrl" alt="">
       <span>
         <svg class="icon" aria-hidden="true">
           <use xlink:href="#icon-music-play-count"></use>

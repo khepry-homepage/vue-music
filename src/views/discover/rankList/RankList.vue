@@ -4,10 +4,10 @@
     <div v-for="list in officialList" :key="list.id"
       class="rank-box flex-row-vertical-center">
       <div class="cover cursor" @click="handleClick(list.id)">
-        <img :src="list.coverImgUrl" alt="">
+        <img v-lazy="list.coverImgUrl" alt="">
       </div>
       <div class="info-list flex-col-vertical-center">
-        <div class="flex-row-vertical-center" v-for="(track, index) in list.tracks" :key="track.first">
+        <div @dblclick="handlePlayAllAsync(list.id)" class="flex-row-vertical-center" v-for="(track, index) in list.tracks" :key="track.first">
           <span>{{index + 1}}</span>
           <span>{{track.first}}</span>
           <span>{{track.second}}</span>
@@ -25,6 +25,7 @@
         </template>
       </SinglePlayList>
     </div>
+
   </div>
 </template>
 
@@ -33,11 +34,15 @@ import SinglePlayList from 'components/SinglePlayList'
 export default {
   name: 'RankList',
   components: { SinglePlayList },
-  props: {},
+  props: {
+    animateId: {
+      require: true
+    }
+  },
   data() {
     return {
       officialList: null,
-      globalList: null
+      globalList: null,
     };
   },
   watch: {},
@@ -49,21 +54,37 @@ export default {
     },
     handleViewAll(id) {
       this.handleClick(id);
-    }
+    },
+    handlePlayAllAsync(id) {
+      this.$comReq({
+        url: '/playlist/track/all',
+        data: {
+          id
+        }
+      })
+        .then(res => {
+          if (res.code !== 200) throw new Error('happen error in request: /playlist/track/all');
+          this.$bus.$emit('playAllSongsAsync', { ids: res.songs.map(song => song.id).join(',') });
+        })
+        .catch(err => console.log(err))           
+    },
   },
   created() {
     this.$comReq({
       url: '/toplist/detail'
-    })
+    }, { id: this.animateId })
     .then(res => {
-      if (res.code == 200) {
-        this.officialList = res.list.slice(0, 4);
-        this.globalList = res.list.slice(4);
-      }
+      if (res.code !== 200) throw new Error('happen error in request: /toplist/detail');
+      this.officialList = res.list.slice(0, 4);
+      this.globalList = res.list.slice(4);
     })
     .catch(err => console.log(err))
   },
-  mounted() {}
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      vm.$bus.$emit('setDisMenuName', { name: '排行榜'} );
+    })
+  },
 };
 </script>
 <style scoped>

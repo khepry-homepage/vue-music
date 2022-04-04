@@ -16,14 +16,15 @@
       </SongView>
     </div>
     <div class="song-artist overflow-replace-ellipsis">
-      <span v-for="(artist, idx) in newsong.artists" 
-        :key="idx"
-        class="info-font cursor">
-        {{artist.name + (idx !== newsong.artists.length-1 ? ' / ':'')}}
+      <span v-for="artist in newsong.artists" 
+        :key="artist.id"
+        class="info-font cursor"
+        @click="routeArtist(artist.id)">
+        {{artist.name}}
       </span> 
     </div>
     <div class="song-album overflow-replace-ellipsis">
-      <span class="info-font cursor">{{newsong.album.name}}</span>
+      <span class="info-font cursor" @click="routeAlbum(newsong.album.id)">{{newsong.album.name}}</span>
     </div>
     <div class="song-duration overflow-replace-ellipsis">
       <span>{{Number(newsong.duration / 1000).FormatHMS()}}</span>
@@ -54,9 +55,14 @@ export default {
       return this.index <= 9 ? `0${this.index}` : this.index.toString();
     }
   },
-  methods: {},
-  created() {},
-  mounted() {}
+  methods: {
+    routeArtist(id) {
+      this.$router.push( { name: '歌手详情', params: { id } } );
+    },
+    routeAlbum(id) {
+      this.$router.push( { name: '专辑详情', params: { id } } );
+    }
+  },
 };
 </script>
 <style scoped>
@@ -86,5 +92,9 @@ export default {
 }
 .song-artist, .song-album {
   flex: 2 2 20%;
+}
+.song-artist > span:nth-child(n + 2)::before {
+  content: ' / ';
+  color: black;
 }
 </style>

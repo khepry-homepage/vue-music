@@ -5,8 +5,7 @@
         v-for="(val, key) in submenus" 
         :key="key"
         :to="val"
-        :class="{activate: activeMenu === key}" 
-        @click.native="handleSelect(key)">
+        :class="{activate: activeMenu === key}">
         {{key}} 
       </router-link>       
     </div>
@@ -38,13 +37,17 @@ export default {
     }
   },
   mounted() {
-    if (this.$route.path !== this.submenus[this.activeMenu])  this.$router.push({name: this.activeMenu});
+    this.$bus.$on('setDisMenuName', this.setDisMenuName);
+    if (this.$route.path !== this.submenus[this.activeMenu])  this.$router.push({name: this.activeMenu});  
   },
   methods: {
-    handleSelect(key) {
-      this.activeMenu = key;
+    setDisMenuName( { name } ) { 
+      this.activeMenu = name;
     }
   },
+  beforeDestroy() {
+    this.$bus.$off('setDisMenuName');
+  }
 }
 </script>
 

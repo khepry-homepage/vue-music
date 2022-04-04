@@ -1,5 +1,5 @@
 <template>
-  <div v-show="animationIds[this.id] !== 0" class="loading">
+  <div v-show="animationIds[this.id] > 0" class="loading">
     <span :style="defaultStyle"></span>
     <span :style="defaultStyle"></span>
     <span :style="defaultStyle"></span>
@@ -40,7 +40,7 @@ export default {
     align-items: center;
     font-size: 0;
     color: rgb(22, 184, 97);
-    z-index: 999;
+    z-index: 1999;
   } 
   
   .loading > span {

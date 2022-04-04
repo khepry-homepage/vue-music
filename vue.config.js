@@ -24,7 +24,9 @@ module.exports = {
             'discover': '@/views/discover',
             'api': '@/api',
             'store': '@/store',
-            'router': '@/router'
+            'router': '@/router',
+            'video': '@/views/video',
+            'artistDetail': '@/views/artistDetail',
         }
     }
   }
