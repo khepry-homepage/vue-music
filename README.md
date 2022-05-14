@@ -1,6 +1,6 @@
 # music
 
-[demo](http://khepry-music.southeastasia.cloudapp.azure.com)
+[demo](http://20.205.104.196/Music/)
 
 ## Project setup
 
